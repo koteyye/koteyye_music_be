@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  # --- PostgreSQL Database ---
+  db:
+    image: postgres:16-alpine
+    container_name: music_db
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres_user}     # Читаем из .env или берем дефолт
+      POSTGRES_PASSWORD: ${DB_PASS:-postgres_pass} # Читаем из .env
+      POSTGRES_DB: music_service
+    # ВАЖНО: Мы добавляем 127.0.0.1 перед портом.
+    # Это значит, что порт открыт ТОЛЬКО внутри самого VPS.
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - ./pg_data:/var/lib/postgresql/data
+    networks:
+      - music-net
+
+  # --- MinIO Object Storage ---
+  minio:
+    image: minio/minio:latest
+    container_name: music_minio
+    restart: always
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_PASS:-minioadmin}
+    # ВАЖНО: Тоже закрываем доступ извне.
+    ports:
+      - "127.0.0.1:9000:9000" # API (для Go приложения на VPS)
+      - "127.0.0.1:9001:9001" # Консоль (для админа через SSH туннель)
+    volumes:
+      - ./minio_data:/data
+    networks:
+      - music-net
+
+  # --- MinIO Client (Настройка бакета) ---
+  createbuckets:
+    image: minio/mc
+    depends_on:
+      - minio
+    networks:
+      - music-net
+    entrypoint: >
+      /bin/sh -c "
+      until (/usr/bin/mc alias set myminio http://minio:9000 ${MINIO_USER:-minioadmin} ${MINIO_PASS:-minioadmin}) do echo '...waiting...' && sleep 1; done;
+      /usr/bin/mc mb --ignore-existing myminio/music-files;
+      /usr/bin/mc anonymous set download myminio/music-files;
+      exit 0;
+      "
+
+networks:
+  music-net:
+    driver: bridge

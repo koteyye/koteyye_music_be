@@ -1,0 +1,92 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16
+    container_name: koteyye_db
+    environment:
+      POSTGRES_DB: koteyye_music
+      POSTGRES_USER: koteyye
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - ./pg_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: always
+    networks:
+      - koteyye_network
+
+  minio:
+    image: minio/minio
+    container_name: koteyye_minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    volumes:
+      - ./minio_data:/data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    restart: always
+    networks:
+      - koteyye_network
+
+  createbuckets:
+    image: minio/mc
+    container_name: koteyye_createbuckets
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      /usr/bin/mc alias set myminio http://minio:9000 ${MINIO_ROOT_USER} ${MINIO_ROOT_PASSWORD};
+      /usr/bin/mc mb myminio/music-files;
+      /usr/bin/mc policy set download myminio/music-files;
+      exit 0;
+      "
+    networks:
+      - koteyye_network
+
+  backend:
+    build: .
+    container_name: koteyye_backend
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - minio
+    ports:
+      - "8080:8080"
+    restart: always
+    networks:
+      - koteyye_network
+
+  nginx:
+    image: nginx:alpine
+    container_name: koteyye_nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+      - ../frontend-dist:/usr/share/nginx/html
+    depends_on:
+      - backend
+    restart: always
+    command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
+    networks:
+      - koteyye_network
+
+  certbot:
+    image: certbot/certbot
+    container_name: koteyye_certbot
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+
+networks:
+  koteyye_network:
+    driver: bridge
