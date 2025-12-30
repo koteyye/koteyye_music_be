@@ -4,7 +4,7 @@ FROM golang:1.24-alpine AS builder
 WORKDIR /app
 
 # Install dependencies
-RUN apk add --no-cache git ca-certificates
+RUN apk add --no-cache git ca-certificates ffmpeg
 
 # Copy go mod files
 COPY go.mod go.sum ./
@@ -19,8 +19,8 @@ RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main ./cmd/api
 # Final stage
 FROM alpine:latest
 
-# Install ca-certificates for HTTPS requests
-RUN apk --no-cache add ca-certificates
+# Install ca-certificates for HTTPS requests and ffmpeg for audio processing
+RUN apk --no-cache add ca-certificates ffmpeg
 
 WORKDIR /root/
 
