@@ -74,16 +74,13 @@ services:
     container_name: koteyye_backend
     environment:
       # Database configuration
-      DB_HOST: db
-      DB_PORT: 5432
-      DB_USER: user
-      DB_PASSWORD: ${DB_PASSWORD:-password}
-      DB_NAME: koteyye_music_db
+      DB_DSN: "postgres://user:${DB_PASSWORD:-password}@db:5432/koteyye_music_db?sslmode=disable"
       
       # MinIO configuration
       MINIO_ENDPOINT: minio:9000
       MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-minioadmin}
       MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-minioadmin}
+      MINIO_BUCKET: music-files
       MINIO_USE_SSL: "false"
       
       # JWT configuration
@@ -92,11 +89,16 @@ services:
       # OAuth configuration (if needed)
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      GOOGLE_REDIRECT_URL: ${GOOGLE_REDIRECT_URL:-http://localhost:8080/api/auth/google/callback}
       YANDEX_CLIENT_ID: ${YANDEX_CLIENT_ID:-}
       YANDEX_CLIENT_SECRET: ${YANDEX_CLIENT_SECRET:-}
+      YANDEX_REDIRECT_URL: ${YANDEX_REDIRECT_URL:-http://localhost:8080/api/auth/yandex/callback}
+      
+      # Frontend configuration
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
       
       # Server configuration
-      PORT: 8080
+      SERVER_PORT: 8080
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
     depends_on:
       db:
@@ -109,7 +111,7 @@ services:
       - "8080:8080"
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/api/tracks", "||", "exit", "1"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health", "||", "exit", "1"]
       interval: 30s
       timeout: 10s
       retries: 5
