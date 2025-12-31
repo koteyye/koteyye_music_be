@@ -28,12 +28,16 @@ type Migration struct {
 }
 
 func NewMigrator(db *database.DB, logger *slog.Logger) *Migrator {
-	// Get the project root directory by going up from this file's location
-	// Current file: pkg/migrations/migrations.go
-	// Need to go up 3 levels: migrations.go -> migrations -> pkg -> project root
-	_, currentFile, _, _ := runtime.Caller(0)
-	projectRoot := filepath.Dir(filepath.Dir(filepath.Dir(currentFile)))
-	migrationsDir := filepath.Join(projectRoot, "migrations")
+	// Check for environment variable first (for Docker containers)
+	migrationsDir := os.Getenv("MIGRATIONS_DIR")
+	if migrationsDir == "" {
+		// Get the project root directory by going up from this file's location
+		// Current file: pkg/migrations/migrations.go
+		// Need to go up 3 levels: migrations.go -> migrations -> pkg -> project root
+		_, currentFile, _, _ := runtime.Caller(0)
+		projectRoot := filepath.Dir(filepath.Dir(filepath.Dir(currentFile)))
+		migrationsDir = filepath.Join(projectRoot, "migrations")
+	}
 
 	return &Migrator{
 		db:            db,
