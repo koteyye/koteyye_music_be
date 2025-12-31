@@ -17,7 +17,7 @@ RUN go mod download
 COPY . .
 
 # Generate swagger docs
-RUN swag init --dir ./,./internal/handler,./internal/models --output ./docs --parseDependency --parseInternal
+RUN swag init --dir ./cmd/api,./internal/handler,./internal/models --output ./docs --parseDependency --parseInternal
 
 # Build the application
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main ./cmd/api
