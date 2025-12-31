@@ -162,6 +162,18 @@ func setupRouter(authHandler *handler.AuthHandler, userHandler *handler.UserHand
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.CORS)
+	
+	// Debug middleware to log all requests
+	r.Use(func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			logger.Log.Info("Incoming request", 
+				"method", r.Method, 
+				"path", r.URL.Path, 
+				"host", r.Host,
+				"user_agent", r.UserAgent())
+			next.ServeHTTP(w, r)
+		})
+	})
 
 	// Health check
 	healthHandler := func(w http.ResponseWriter, r *http.Request) {
@@ -253,6 +265,13 @@ func setupRouter(authHandler *handler.AuthHandler, userHandler *handler.UserHand
 				r.Delete("/{id}", adminHandler.DeleteTrack)
 			})
 		})
+	})
+
+	// Add 404 handler
+	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
+		logger.Log.Warn("Route not found", "method", r.Method, "path", r.URL.Path, "host", r.Host)
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte("Not Found"))
 	})
 
 	return r

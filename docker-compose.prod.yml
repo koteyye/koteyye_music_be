@@ -93,13 +93,13 @@ services:
       # OAuth configuration (if needed)
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
-      GOOGLE_REDIRECT_URL: ${GOOGLE_REDIRECT_URL:-http://localhost:8080/api/auth/google/callback}
+      GOOGLE_REDIRECT_URL: ${GOOGLE_REDIRECT_URL:-https://api.kotey-ye.ru/api/auth/google/callback}
       YANDEX_CLIENT_ID: ${YANDEX_CLIENT_ID:-}
       YANDEX_CLIENT_SECRET: ${YANDEX_CLIENT_SECRET:-}
-      YANDEX_REDIRECT_URL: ${YANDEX_REDIRECT_URL:-http://localhost:8080/api/auth/yandex/callback}
+      YANDEX_REDIRECT_URL: ${YANDEX_REDIRECT_URL:-https://api.kotey-ye.ru/api/auth/yandex/callback}
       
       # Frontend configuration
-      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
+      FRONTEND_URL: ${FRONTEND_URL:-https://kotey-ye.ru}
       
       # Server configuration
       SERVER_PORT: 8080

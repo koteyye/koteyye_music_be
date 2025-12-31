@@ -143,6 +143,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 // @Router /api/auth/guest [post]
 func (h *AuthHandler) GuestLogin(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+	h.logger.Info("GuestLogin endpoint called")
 
 	// Call auth service to create guest user
 	response, err := h.authService.GuestLogin(ctx)
