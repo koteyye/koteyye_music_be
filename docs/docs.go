@@ -15,6 +15,279 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/admin/albums": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin"
+                ],
+                "summary": "Create Album",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Album title",
+                        "name": "title",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Artist name",
+                        "name": "artist",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Music genre (pop, rock, hip-hop, rap, indie, electronic, house, techno, jazz, blues, classical, metal, punk, r-n-b, soul, folk, reggae, country, latin, k-pop, soundtrack, lo-fi, chanson)",
+                        "name": "genre",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Release date (YYYY-MM-DD)",
+                        "name": "release_date",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Album cover image (JPG, PNG)",
+                        "name": "cover",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.AlbumResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/albums/{id}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "tags": [
+                    "admin"
+                ],
+                "summary": "Delete Album",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Album ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content - album deleted successfully"
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Album not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/albums/{id}/tracks": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin"
+                ],
+                "summary": "Add Track to Album",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Album ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Track title",
+                        "name": "title",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Track artist (optional, uses album artist if empty)",
+                        "name": "artist",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "file",
+                        "description": "Audio file (MP3, WAV, M4A, FLAC)",
+                        "name": "audio",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.TrackResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Album not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/admin/tracks/upload": {
             "post": {
                 "security": [
@@ -65,7 +338,7 @@ const docTemplate = `{
                     {
                         "type": "file",
                         "description": "Cover Image (jpg/png)",
-                        "name": "image",
+                        "name": "cover",
                         "in": "formData"
                     }
                 ],
@@ -179,13 +452,511 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/tracks": {
+        "/api/albums": {
             "get": {
-                "security": [
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "albums"
+                ],
+                "summary": "Get Albums",
+                "parameters": [
                     {
-                        "BearerAuth": []
+                        "minimum": 1,
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "maximum": 100,
+                        "minimum": 1,
+                        "type": "integer",
+                        "default": 20,
+                        "description": "Items per page",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "rock",
+                        "description": "Filter by genre",
+                        "name": "genre",
+                        "in": "query"
                     }
                 ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.AlbumResponse"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/albums/{id}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "albums"
+                ],
+                "summary": "Get Album Details",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Album ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.AlbumDetail"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Album not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/albums/{id}/cover": {
+            "get": {
+                "tags": [
+                    "albums"
+                ],
+                "summary": "Get Album Cover Image",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "550e8400-e29b-41d4-a716-446655440000",
+                        "description": "Album ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Cover image",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "404": {
+                        "description": "Not found - album or cover does not exist",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/albums/{id}/info": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "albums"
+                ],
+                "summary": "Get Album Info",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Album ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.AlbumResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Album not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/auth/guest": {
+            "post": {
+                "description": "Creates a temporary guest user without registration. Guest users can browse tracks, like, and play music. When they login via OAuth, the guest account will be promoted to a registered user.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Guest Login",
+                "responses": {
+                    "200": {
+                        "description": "Guest successfully logged in",
+                        "schema": {
+                            "$ref": "#/definitions/models.GuestResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/auth/login": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "User Login",
+                "parameters": [
+                    {
+                        "description": "Login credentials",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.LoginRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User successfully logged in",
+                        "schema": {
+                            "$ref": "#/definitions/models.AuthResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request - invalid input",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - invalid credentials",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/auth/register": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "User Registration",
+                "parameters": [
+                    {
+                        "description": "Registration data",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.RegisterRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "User successfully registered",
+                        "schema": {
+                            "$ref": "#/definitions/models.AuthResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request - invalid input",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict - user already exists",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/auth/{provider}/callback": {
+            "get": {
+                "tags": [
+                    "oauth"
+                ],
+                "summary": "OAuth Callback",
+                "parameters": [
+                    {
+                        "enum": [
+                            "google",
+                            "yandex"
+                        ],
+                        "type": "string",
+                        "example": "google",
+                        "description": "OAuth Provider",
+                        "name": "provider",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "4/0AX4XfWhi_abc123xyz",
+                        "description": "Authorization Code",
+                        "name": "code",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "random_state_string",
+                        "description": "State Parameter",
+                        "name": "state",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "307": {
+                        "description": "Temporary Redirect to frontend with JWT token in query"
+                    },
+                    "400": {
+                        "description": "Bad request - missing or invalid code",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/auth/{provider}/login": {
+            "get": {
+                "tags": [
+                    "oauth"
+                ],
+                "summary": "OAuth Login Initiation",
+                "parameters": [
+                    {
+                        "enum": [
+                            "google",
+                            "yandex"
+                        ],
+                        "type": "string",
+                        "example": "google",
+                        "description": "OAuth Provider",
+                        "name": "provider",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "307": {
+                        "description": "Temporary Redirect to OAuth provider"
+                    },
+                    "400": {
+                        "description": "Bad request - unsupported provider",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/avatars/{key}": {
+            "get": {
+                "tags": [
+                    "users"
+                ],
+                "summary": "Get User Avatar",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "avatars/123/uuid.jpg",
+                        "description": "Avatar key",
+                        "name": "key",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Avatar image",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "404": {
+                        "description": "Avatar not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/tracks": {
+            "get": {
                 "consumes": [
                     "application/json"
                 ],
@@ -195,7 +966,7 @@ const docTemplate = `{
                 "tags": [
                     "tracks"
                 ],
-                "summary": "List All Tracks",
+                "summary": "List All Tracks (Optional Auth)",
                 "parameters": [
                     {
                         "type": "integer",
@@ -212,6 +983,20 @@ const docTemplate = `{
                         "description": "Items per page",
                         "name": "limit",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "rock",
+                        "description": "Filter by genre",
+                        "name": "genre",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                        "description": "Bearer token for authenticated access (shows like status)",
+                        "name": "Authorization",
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -219,15 +1004,6 @@ const docTemplate = `{
                         "description": "List of tracks with pagination",
                         "schema": {
                             "$ref": "#/definitions/models.TrackListResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized - invalid or missing token",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
                         }
                     },
                     "500": {
@@ -268,6 +1044,116 @@ const docTemplate = `{
                     },
                     "401": {
                         "description": "Unauthorized - invalid or missing token",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/tracks/{id}": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tracks"
+                ],
+                "summary": "Get Track by ID (Optional Auth)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "550e8400-e29b-41d4-a716-446655440000",
+                        "description": "Track ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                        "description": "Bearer token for authenticated access (shows like status)",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Track details with optional like status",
+                        "schema": {
+                            "$ref": "#/definitions/models.Track"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request - invalid track ID",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found - track does not exist",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/tracks/{id}/cover": {
+            "get": {
+                "tags": [
+                    "tracks"
+                ],
+                "summary": "Get Track Cover Image",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "550e8400-e29b-41d4-a716-446655440000",
+                        "description": "Track ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Cover image",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "404": {
+                        "description": "Not found - track or cover does not exist",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -412,15 +1298,10 @@ const docTemplate = `{
         },
         "/api/tracks/{id}/stream": {
             "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
                 "tags": [
                     "tracks"
                 ],
-                "summary": "Stream Track Audio",
+                "summary": "Stream Track Audio (Public Access)",
                 "parameters": [
                     {
                         "type": "string",
@@ -438,15 +1319,6 @@ const docTemplate = `{
                             "type": "file"
                         }
                     },
-                    "401": {
-                        "description": "Unauthorized - invalid or missing token",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
                     "404": {
                         "description": "Not found - track does not exist",
                         "schema": {
@@ -459,8 +1331,13 @@ const docTemplate = `{
                 }
             }
         },
-        "/auth/login": {
+        "/api/user/player-state": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -468,29 +1345,26 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "auth"
+                    "users"
                 ],
-                "summary": "User Login",
+                "summary": "Update Player State",
                 "parameters": [
                     {
-                        "description": "Login credentials",
-                        "name": "input",
+                        "description": "Player state data",
+                        "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.LoginRequest"
+                            "$ref": "#/definitions/models.PlayerStateRequest"
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "User successfully logged in",
-                        "schema": {
-                            "$ref": "#/definitions/models.AuthResponse"
-                        }
+                        "description": "Player state updated successfully"
                     },
                     "400": {
-                        "description": "Bad request - invalid input",
+                        "description": "Bad request - invalid input data",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -499,109 +1373,7 @@ const docTemplate = `{
                         }
                     },
                     "401": {
-                        "description": "Unauthorized - invalid credentials",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/auth/register": {
-            "post": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "auth"
-                ],
-                "summary": "User Registration",
-                "parameters": [
-                    {
-                        "description": "Registration data",
-                        "name": "input",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.RegisterRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "User successfully registered",
-                        "schema": {
-                            "$ref": "#/definitions/models.AuthResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad request - invalid input",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "409": {
-                        "description": "Conflict - user already exists",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/auth/{provider}/callback": {
-            "get": {
-                "tags": [
-                    "oauth"
-                ],
-                "summary": "OAuth Callback",
-                "parameters": [
-                    {
-                        "enum": [
-                            "google",
-                            "yandex"
-                        ],
-                        "type": "string",
-                        "example": "google",
-                        "description": "OAuth Provider",
-                        "name": "provider",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "example": "4/0AX4XfWhi_abc123xyz",
-                        "description": "Authorization Code",
-                        "name": "code",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "example": "random_state_string",
-                        "description": "State Parameter",
-                        "name": "state",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "307": {
-                        "description": "Temporary Redirect to frontend with JWT token in query"
-                    },
-                    "400": {
-                        "description": "Bad request - missing or invalid code",
+                        "description": "Unauthorized - invalid or missing token",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -621,32 +1393,225 @@ const docTemplate = `{
                 }
             }
         },
-        "/auth/{provider}/login": {
+        "/api/users/me": {
             "get": {
-                "tags": [
-                    "oauth"
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
                 ],
-                "summary": "OAuth Login Initiation",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Get Current User Profile",
+                "responses": {
+                    "200": {
+                        "description": "User profile data",
+                        "schema": {
+                            "$ref": "#/definitions/models.UserProfileResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - invalid or missing token",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "User not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Update Current User Profile",
                 "parameters": [
                     {
-                        "enum": [
-                            "google",
-                            "yandex"
-                        ],
-                        "type": "string",
-                        "example": "google",
-                        "description": "OAuth Provider",
-                        "name": "provider",
-                        "in": "path",
+                        "description": "Profile update data",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.UpdateProfileRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Updated user profile",
+                        "schema": {
+                            "$ref": "#/definitions/models.UserProfileResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request - invalid input",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - invalid or missing token",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "User not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/users/me/avatar": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Upload User Avatar",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "Avatar image file (jpg, png, gif, webp, max 5MB)",
+                        "name": "avatar",
+                        "in": "formData",
                         "required": true
                     }
                 ],
                 "responses": {
-                    "307": {
-                        "description": "Temporary Redirect to OAuth provider"
+                    "200": {
+                        "description": "Updated user profile with new avatar",
+                        "schema": {
+                            "$ref": "#/definitions/models.UserProfileResponse"
+                        }
                     },
                     "400": {
-                        "description": "Bad request - unsupported provider",
+                        "description": "Bad request - invalid file",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - invalid or missing token",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "413": {
+                        "description": "File too large",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Remove User Avatar",
+                "responses": {
+                    "200": {
+                        "description": "Updated user profile without avatar",
+                        "schema": {
+                            "$ref": "#/definitions/models.UserProfileResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - invalid or missing token",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -668,7 +1633,70 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "models.AlbumDetail": {
+            "type": "object",
+            "properties": {
+                "album": {
+                    "$ref": "#/definitions/models.AlbumResponse"
+                },
+                "tracks": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.TrackResponse"
+                    }
+                }
+            }
+        },
+        "models.AlbumResponse": {
+            "type": "object",
+            "properties": {
+                "artist": {
+                    "type": "string",
+                    "example": "Queen"
+                },
+                "cover_url": {
+                    "type": "string",
+                    "example": "https://s3.amazonaws.com/bucket/albums/550e8400-e29b-41d4-a716-446655440000/cover.jpg"
+                },
+                "created_at": {
+                    "type": "string",
+                    "example": "2024-01-15T10:30:00Z"
+                },
+                "genre": {
+                    "type": "string",
+                    "example": "rock"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                },
+                "release_date": {
+                    "type": "string",
+                    "example": "1975-11-21"
+                },
+                "title": {
+                    "type": "string",
+                    "example": "A Night at the Opera"
+                },
+                "year": {
+                    "type": "integer",
+                    "example": 1975
+                }
+            }
+        },
         "models.AuthResponse": {
+            "type": "object",
+            "properties": {
+                "token": {
+                    "type": "string",
+                    "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwiZXhwIjoxNzA1MzQzODAwfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+                },
+                "user": {
+                    "$ref": "#/definitions/models.User"
+                }
+            }
+        },
+        "models.GuestResponse": {
             "type": "object",
             "properties": {
                 "token": {
@@ -694,6 +1722,29 @@ const docTemplate = `{
                 "password": {
                     "type": "string",
                     "example": "password123"
+                }
+            }
+        },
+        "models.PlayerStateRequest": {
+            "type": "object",
+            "required": [
+                "track_id"
+            ],
+            "properties": {
+                "position": {
+                    "type": "number",
+                    "minimum": 0,
+                    "example": 45.5
+                },
+                "track_id": {
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                },
+                "volume": {
+                    "type": "integer",
+                    "maximum": 100,
+                    "minimum": 0,
+                    "example": 80
                 }
             }
         },
@@ -731,11 +1782,12 @@ const docTemplate = `{
         "models.Track": {
             "type": "object",
             "properties": {
-                "album": {
+                "album_id": {
                     "type": "string",
-                    "example": "A Night at the Opera"
+                    "example": "550e8400-e29b-41d4-a716-446655440001"
                 },
                 "artist": {
+                    "description": "If NULL, uses album artist",
                     "type": "string",
                     "example": "Queen"
                 },
@@ -764,14 +1816,6 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 1250
                 },
-                "s3_audio_key": {
-                    "type": "string",
-                    "example": "audio/550e8400-e29b-41d4-a716-446655440000.mp3"
-                },
-                "s3_image_key": {
-                    "type": "string",
-                    "example": "images/550e8400-e29b-41d4-a716-446655440000.jpg"
-                },
                 "title": {
                     "type": "string",
                     "example": "Bohemian Rhapsody"
@@ -791,7 +1835,7 @@ const docTemplate = `{
                 "tracks": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/models.Track"
+                        "$ref": "#/definitions/models.TrackResponse"
                     }
                 }
             }
@@ -813,9 +1857,157 @@ const docTemplate = `{
                 }
             }
         },
+        "models.TrackResponse": {
+            "type": "object",
+            "properties": {
+                "album_id": {
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440001"
+                },
+                "album_title": {
+                    "type": "string",
+                    "example": "A Night at the Opera"
+                },
+                "artist_name": {
+                    "type": "string",
+                    "example": "Queen"
+                },
+                "audio_url": {
+                    "type": "string",
+                    "example": "https://s3.amazonaws.com/bucket/albums/550e8400-e29b-41d4-a716-446655440001/550e8400-e29b-41d4-a716-446655440000.mp3"
+                },
+                "cover_url": {
+                    "type": "string",
+                    "example": "https://s3.amazonaws.com/bucket/albums/550e8400-e29b-41d4-a716-446655440001/cover.jpg"
+                },
+                "created_at": {
+                    "type": "string",
+                    "example": "2024-01-15T10:30:00Z"
+                },
+                "duration_seconds": {
+                    "type": "integer",
+                    "example": 354
+                },
+                "genre": {
+                    "type": "string",
+                    "example": "rock"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                },
+                "is_liked": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "likes_count": {
+                    "type": "integer",
+                    "example": 87
+                },
+                "plays_count": {
+                    "type": "integer",
+                    "example": 1250
+                },
+                "release_date": {
+                    "type": "string",
+                    "example": "1975-11-21"
+                },
+                "title": {
+                    "type": "string",
+                    "example": "Bohemian Rhapsody"
+                }
+            }
+        },
+        "models.UpdateProfileRequest": {
+            "type": "object",
+            "properties": {
+                "avatar_url": {
+                    "type": "string",
+                    "example": "https://example.com/avatar.jpg"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "John Doe"
+                }
+            }
+        },
         "models.User": {
             "type": "object",
             "properties": {
+                "avatar_url": {
+                    "description": "NULL если нет аватара",
+                    "type": "string",
+                    "example": "https://example.com/avatar.jpg"
+                },
+                "created_at": {
+                    "type": "string",
+                    "example": "2024-01-15T10:30:00Z"
+                },
+                "email": {
+                    "description": "NULL для гостей",
+                    "type": "string",
+                    "example": "user@example.com"
+                },
+                "external_id": {
+                    "description": "NULL для локальных пользователей",
+                    "type": "string",
+                    "example": ""
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "last_login_at": {
+                    "type": "string",
+                    "example": "2024-01-15T10:30:00Z"
+                },
+                "last_position": {
+                    "description": "Позиция в секундах",
+                    "type": "number",
+                    "example": 45.5
+                },
+                "last_track": {
+                    "description": "Полный объект последнего трека (JOIN)",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.Track"
+                        }
+                    ]
+                },
+                "last_track_id": {
+                    "description": "NULL если нет последнего трека",
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                },
+                "name": {
+                    "description": "NULL если не указано",
+                    "type": "string",
+                    "example": "John Doe"
+                },
+                "provider": {
+                    "description": "NULL для гостей, 'local', 'google', 'yandex'",
+                    "type": "string",
+                    "example": "local"
+                },
+                "role": {
+                    "description": "'user', 'admin', 'guest'",
+                    "type": "string",
+                    "example": "user"
+                },
+                "volume_preference": {
+                    "description": "Громкость 0-100",
+                    "type": "integer",
+                    "example": 80
+                }
+            }
+        },
+        "models.UserProfileResponse": {
+            "type": "object",
+            "properties": {
+                "avatar_url": {
+                    "type": "string",
+                    "example": "https://example.com/avatar.jpg"
+                },
                 "created_at": {
                     "type": "string",
                     "example": "2024-01-15T10:30:00Z"
@@ -824,24 +2016,40 @@ const docTemplate = `{
                     "type": "string",
                     "example": "user@example.com"
                 },
-                "external_id": {
-                    "description": "Пустая строка для локальных пользователей",
-                    "type": "string",
-                    "example": ""
-                },
                 "id": {
                     "type": "integer",
                     "example": 1
                 },
+                "last_login_at": {
+                    "type": "string",
+                    "example": "2024-01-15T10:30:00Z"
+                },
+                "last_position": {
+                    "type": "number",
+                    "example": 45.5
+                },
+                "last_track": {
+                    "$ref": "#/definitions/models.Track"
+                },
+                "last_track_id": {
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "John Doe"
+                },
                 "provider": {
-                    "description": "'local', 'google', 'yandex'",
                     "type": "string",
                     "example": "local"
                 },
                 "role": {
-                    "description": "'user', 'admin'",
                     "type": "string",
                     "example": "user"
+                },
+                "volume_preference": {
+                    "type": "integer",
+                    "example": 80
                 }
             }
         },
@@ -851,7 +2059,7 @@ const docTemplate = `{
                 "tracks": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/models.Track"
+                        "$ref": "#/definitions/models.TrackResponse"
                     }
                 }
             }
