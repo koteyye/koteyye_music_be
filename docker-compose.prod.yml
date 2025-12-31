@@ -7,7 +7,7 @@ services:
     environment:
       POSTGRES_DB: koteyye_music_db
       POSTGRES_USER: user
-      POSTGRES_PASSWORD: "788555"
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
@@ -77,7 +77,7 @@ services:
       DB_HOST: db
       DB_PORT: 5432
       DB_USER: user
-      DB_PASSWORD: "788555"
+      DB_PASSWORD: ${DB_PASSWORD:-password}
       DB_NAME: koteyye_music_db
       
       # MinIO configuration
@@ -88,7 +88,7 @@ services:
       MINIO_USE_SSL: "false"
       
       # JWT configuration
-      JWT_SECRET: "super-secret-jwt-key-change-in-production-788555"
+      JWT_SECRET: ${JWT_SECRET}
       
       # OAuth configuration (if needed)
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}

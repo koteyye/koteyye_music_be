@@ -164,10 +164,12 @@ func setupRouter(authHandler *handler.AuthHandler, userHandler *handler.UserHand
 	r.Use(middleware.CORS)
 
 	// Health check
-	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
+	healthHandler := func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("OK"))
-	})
+	}
+	r.Get("/health", healthHandler)
+	r.Head("/health", healthHandler)
 
 	// Swagger documentation
 	r.Get("/swagger/*", httpSwagger.WrapHandler)

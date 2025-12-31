@@ -41,10 +41,6 @@ func Load() (*Config, error) {
 		dbPassword := getEnv("DB_PASSWORD", "postgres_pass")
 		dbName := getEnv("DB_NAME", "music_service")
 		dbDSN = fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", dbUser, dbPassword, dbHost, dbPort, dbName)
-		
-		// Debug logging (без пароля)
-		fmt.Printf("DEBUG: DB config - host=%s, port=%s, user=%s, name=%s, password_len=%d\n", 
-			dbHost, dbPort, dbUser, dbName, len(dbPassword))
 	}
 
 	cfg := &Config{
