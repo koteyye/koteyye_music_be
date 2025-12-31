@@ -191,7 +191,9 @@ func setupRouter(authHandler *handler.AuthHandler, userHandler *handler.UserHand
 		r.With(middleware.OptionalAuthMiddleware(authService)).Get("/", trackHandler.ListTracks)
 		r.With(middleware.OptionalAuthMiddleware(authService)).Get("/{id}", trackHandler.GetTrack)
 		r.With(middleware.OptionalAuthMiddleware(authService)).Get("/{id}/stream", trackHandler.StreamTrack)
+		r.With(middleware.OptionalAuthMiddleware(authService)).Head("/{id}/stream", trackHandler.StreamTrack) // Support HEAD for stream
 		r.Get("/{id}/cover", trackHandler.GetTrackCover) // Public cover access
+		r.Head("/{id}/cover", trackHandler.GetTrackCover) // Support HEAD for cover
 
 		// Protected routes (require authentication including guests)
 		r.Group(func(r chi.Router) {
@@ -209,6 +211,8 @@ func setupRouter(authHandler *handler.AuthHandler, userHandler *handler.UserHand
 		r.Get("/", albumHandler.GetAlbums)
 		r.Get("/{id}", albumHandler.GetAlbumByID)
 		r.Get("/{id}/info", albumHandler.GetAlbumInfo)
+		r.Get("/{id}/cover", albumHandler.GetAlbumCover) // Public album cover access
+		r.Head("/{id}/cover", albumHandler.GetAlbumCover) // Support HEAD for cover
 	})
 
 	// User profile routes (require authentication)
@@ -221,10 +225,8 @@ func setupRouter(authHandler *handler.AuthHandler, userHandler *handler.UserHand
 			r.Put("/me", userHandler.UpdateMe)
 			r.Post("/me/avatar", userHandler.UploadAvatar)
 			r.Delete("/me/avatar", userHandler.RemoveAvatar)
+			r.Post("/player-state", userHandler.UpdatePlayerState) // Move player-state under /api/users/
 		})
-
-		// Player state endpoint at /api/user/player-state to match frontend
-		r.Post("/api/user/player-state", userHandler.UpdatePlayerState)
 	})
 
 	// Public avatar serving (no auth required)

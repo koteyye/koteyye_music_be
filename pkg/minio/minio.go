@@ -189,6 +189,24 @@ func (s *Service) DeleteFile(ctx context.Context, bucket, objectName string) err
 	return nil
 }
 
+// GetObject returns a reader for the object
+func (s *Service) GetObject(ctx context.Context, objectName string) (io.ReadCloser, error) {
+	object, err := s.client.Client.GetObject(ctx, "music-files", objectName, minio.GetObjectOptions{})
+	if err != nil {
+		return nil, fmt.Errorf("failed to get object: %w", err)
+	}
+	return object, nil
+}
+
+// GetObjectInfo returns info about the object
+func (s *Service) GetObjectInfo(ctx context.Context, objectName string) (*minio.ObjectInfo, error) {
+	info, err := s.client.Client.StatObject(ctx, "music-files", objectName, minio.StatObjectOptions{})
+	if err != nil {
+		return nil, fmt.Errorf("failed to get object info: %w", err)
+	}
+	return &info, nil
+}
+
 // DeleteFolder deletes all objects with a given prefix (simulating folder deletion)
 func (s *Service) DeleteFolder(ctx context.Context, bucket, prefix string) error {
 	// List all objects with the prefix

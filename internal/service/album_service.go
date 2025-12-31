@@ -3,25 +3,27 @@ package service
 import (
 	"context"
 	"fmt"
+	"io"
 	"mime/multipart"
 	"path/filepath"
 	"strings"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/minio/minio-go/v7"
 	"koteyye_music_be/internal/models"
 	"koteyye_music_be/internal/repository"
 	"koteyye_music_be/pkg/audio"
-	"koteyye_music_be/pkg/minio"
+	minioPkg "koteyye_music_be/pkg/minio"
 )
 
 type AlbumService struct {
 	albumRepo *repository.AlbumRepository
 	trackRepo *repository.TrackRepository
-	minioSvc  *minio.Service
+	minioSvc  *minioPkg.Service
 }
 
-func NewAlbumService(albumRepo *repository.AlbumRepository, trackRepo *repository.TrackRepository, minioSvc *minio.Service) *AlbumService {
+func NewAlbumService(albumRepo *repository.AlbumRepository, trackRepo *repository.TrackRepository, minioSvc *minioPkg.Service) *AlbumService {
 	return &AlbumService{
 		albumRepo: albumRepo,
 		trackRepo: trackRepo,
@@ -82,8 +84,8 @@ func (s *AlbumService) CreateAlbum(ctx context.Context, req *models.AlbumCreate,
 		return nil, fmt.Errorf("failed to create album: %w", err)
 	}
 
-	// Generate cover URL and year
-	coverURL, _ := s.minioSvc.GetFileURL("music-files", coverKey)
+	// Generate BE endpoint URL for cover
+	coverURL := fmt.Sprintf("/api/albums/%s/cover", albumID)
 	year := releaseDate.Year()
 
 	return &models.AlbumResponse{
@@ -104,8 +106,8 @@ func (s *AlbumService) GetAlbumByID(ctx context.Context, id string) (*models.Alb
 		return nil, fmt.Errorf("album not found: %w", err)
 	}
 
-	// Generate cover URL
-	coverURL, _ := s.minioSvc.GetFileURL("music-files", album.CoverImageKey)
+	// Generate BE endpoint URL for cover
+	coverURL := fmt.Sprintf("/api/albums/%s/cover", album.ID)
 
 	// Format release date and extract year
 	releaseDateStr := album.ReleaseDate.Format("2006-01-02")
@@ -123,6 +125,11 @@ func (s *AlbumService) GetAlbumByID(ctx context.Context, id string) (*models.Alb
 	}, nil
 }
 
+// GetAlbumRaw returns raw album data with internal fields for handlers
+func (s *AlbumService) GetAlbumRaw(ctx context.Context, id string) (*models.Album, error) {
+	return s.albumRepo.GetByID(ctx, id)
+}
+
 func (s *AlbumService) GetAllAlbums(ctx context.Context, limit, offset int, genreFilter string) ([]models.AlbumResponse, error) {
 	albums, err := s.albumRepo.GetAll(ctx, limit, offset, genreFilter)
 	if err != nil {
@@ -131,7 +138,7 @@ func (s *AlbumService) GetAllAlbums(ctx context.Context, limit, offset int, genr
 
 	var responses []models.AlbumResponse
 	for _, album := range albums {
-		coverURL, _ := s.minioSvc.GetFileURL("music-files", album.CoverImageKey)
+		coverURL := fmt.Sprintf("/api/albums/%s/cover", album.ID)
 		releaseDateStr := album.ReleaseDate.Format("2006-01-02")
 		year := album.ReleaseDate.Year()
 
@@ -156,18 +163,15 @@ func (s *AlbumService) GetAlbumWithTracks(ctx context.Context, albumID string) (
 		return nil, fmt.Errorf("failed to get album with tracks: %w", err)
 	}
 
-	// Generate cover URL for album
-	album, _ := s.albumRepo.GetByID(ctx, albumID)
-	albumDetail.Album.CoverURL, _ = s.minioSvc.GetFileURL("music-files", album.CoverImageKey)
+	// Generate BE endpoint URL for album cover
+	albumDetail.Album.CoverURL = fmt.Sprintf("/api/albums/%s/cover", albumID)
 
-	// Generate cover URLs and audio URLs for tracks
+	// Generate BE endpoint URLs for tracks
 	for i := range albumDetail.Tracks {
-		if album != nil && album.CoverImageKey != "" {
-			albumDetail.Tracks[i].CoverURL, _ = s.minioSvc.GetFileURL("music-files", album.CoverImageKey)
-		}
-		if albumDetail.Tracks[i].AudioFileKey != "" {
-			albumDetail.Tracks[i].AudioURL, _ = s.minioSvc.GetFileURL("music-files", albumDetail.Tracks[i].AudioFileKey)
-		}
+		// Cover URL points to track cover endpoint (which gets it from album)
+		albumDetail.Tracks[i].CoverURL = fmt.Sprintf("/api/tracks/%s/cover", albumDetail.Tracks[i].ID)
+		// Audio URL points to track stream endpoint
+		albumDetail.Tracks[i].AudioURL = fmt.Sprintf("/api/tracks/%s/stream", albumDetail.Tracks[i].ID)
 	}
 
 	return albumDetail, nil
@@ -196,6 +200,16 @@ func (s *AlbumService) DeleteAlbum(ctx context.Context, albumID string) error {
 	}
 
 	return nil
+}
+
+// GetCoverImage returns the cover image object from MinIO
+func (s *AlbumService) GetCoverImage(ctx context.Context, coverKey string) (io.ReadCloser, error) {
+	return s.minioSvc.GetObject(ctx, coverKey)
+}
+
+// GetCoverImageInfo returns the cover image info from MinIO
+func (s *AlbumService) GetCoverImageInfo(ctx context.Context, coverKey string) (*minio.ObjectInfo, error) {
+	return s.minioSvc.GetObjectInfo(ctx, coverKey)
 }
 
 func (s *AlbumService) AddTrackToAlbum(ctx context.Context, albumID string, userID int, req *models.TrackCreate, audioFile multipart.File, audioHeader *multipart.FileHeader) (*models.TrackResponse, error) {
@@ -239,7 +253,7 @@ func (s *AlbumService) AddTrackToAlbum(ctx context.Context, albumID string, user
 		Title:           req.Title,
 		Artist:          req.Artist,
 		DurationSeconds: metadata.GetDurationSeconds(),
-		S3AudioKey:      audioKey,
+		AudioFileKey:    audioKey,
 		PlaysCount:      0,
 		LikesCount:      0,
 		CreatedAt:       time.Now(),
@@ -252,9 +266,9 @@ func (s *AlbumService) AddTrackToAlbum(ctx context.Context, albumID string, user
 		return nil, fmt.Errorf("failed to create track: %w", err)
 	}
 
-	// Generate URLs
-	coverURL, _ := s.minioSvc.GetFileURL("music-files", album.CoverImageKey)
-	audioURL, _ := s.minioSvc.GetFileURL("music-files", audioKey)
+	// Generate BE endpoint URLs
+	coverURL := fmt.Sprintf("/api/tracks/%s/cover", trackID)
+	audioURL := fmt.Sprintf("/api/tracks/%s/stream", trackID)
 
 	// Determine final artist name
 	finalArtist := album.Artist

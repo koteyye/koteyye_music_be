@@ -291,7 +291,7 @@ func (r *UserRepository) GetUserWithLastTrack(ctx context.Context, id int) (*mod
 		SELECT 
 			u.id, u.email, u.name, u.avatar_url, u.password_hash, u.provider, u.external_id, u.role,
 			u.last_track_id, u.last_position, u.volume_preference, u.created_at, u.last_login_at,
-			t.id as track_id, t.title, t.artist, t.album_id, t.duration_seconds, t.s3_audio_key,
+			t.id as track_id, t.title, t.artist, t.album_id, t.duration_seconds, t.audio_file_key,
 			t.plays_count, t.likes_count, t.created_at as track_created_at
 		FROM users u
 		LEFT JOIN tracks t ON u.last_track_id = t.id
@@ -350,7 +350,7 @@ func (r *UserRepository) GetUserWithLastTrack(ctx context.Context, id int) (*mod
 			lastTrack.AlbumID = *trackAlbumID
 		}
 		lastTrack.DurationSeconds = *trackDuration
-		lastTrack.S3AudioKey = *trackAudioKey
+		lastTrack.AudioFileKey = *trackAudioKey
 		lastTrack.PlaysCount = *trackPlays
 		lastTrack.LikesCount = *trackLikes
 		lastTrack.CreatedAt = *trackCreatedAt

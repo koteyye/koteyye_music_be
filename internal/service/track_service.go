@@ -13,20 +13,21 @@ import (
 	"koteyye_music_be/internal/models"
 	"koteyye_music_be/internal/repository"
 	"koteyye_music_be/pkg/logger"
-	"koteyye_music_be/pkg/minio"
+	minioPkg "koteyye_music_be/pkg/minio"
 
 	"github.com/google/uuid"
+	"github.com/minio/minio-go/v7"
 )
 
 type TrackService struct {
 	trackRepo *repository.TrackRepository
 	albumRepo *repository.AlbumRepository
-	Minio     *minio.Client
-	minioSvc  *minio.Service
+	Minio     *minioPkg.Client
+	minioSvc  *minioPkg.Service
 	logger    *slog.Logger
 }
 
-func NewTrackService(trackRepo *repository.TrackRepository, albumRepo *repository.AlbumRepository, minio *minio.Client, minioSvc *minio.Service, log *slog.Logger) *TrackService {
+func NewTrackService(trackRepo *repository.TrackRepository, albumRepo *repository.AlbumRepository, minio *minioPkg.Client, minioSvc *minioPkg.Service, log *slog.Logger) *TrackService {
 	return &TrackService{
 		trackRepo: trackRepo,
 		albumRepo: albumRepo,
@@ -113,16 +114,12 @@ func (s *TrackService) ListTracksWithOptionalUser(ctx context.Context, page, lim
 		return nil, 0, fmt.Errorf("failed to list tracks: %w", err)
 	}
 
-	// Generate cover URLs and audio URLs for all tracks
+	// Generate BE endpoint URLs for all tracks
 	for i := range tracks {
-		if tracks[i].CoverImageKey != "" {
-			coverURL, _ := s.minioSvc.GetFileURL("music-files", tracks[i].CoverImageKey)
-			tracks[i].CoverURL = coverURL
-		}
-		if tracks[i].AudioFileKey != "" {
-			audioURL, _ := s.minioSvc.GetFileURL("music-files", tracks[i].AudioFileKey)
-			tracks[i].AudioURL = audioURL
-		}
+		// Cover URL points to track cover endpoint (which gets it from album)
+		tracks[i].CoverURL = fmt.Sprintf("/api/tracks/%s/cover", tracks[i].ID)
+		// Audio URL points to track stream endpoint
+		tracks[i].AudioURL = fmt.Sprintf("/api/tracks/%s/stream", tracks[i].ID)
 	}
 
 	// Get total count of tracks
@@ -148,16 +145,12 @@ func (s *TrackService) GetUserTracksWithAlbumInfo(ctx context.Context, userID in
 		return nil, fmt.Errorf("failed to get user tracks: %w", err)
 	}
 
-	// Generate cover URLs and audio URLs for all tracks
+	// Generate BE endpoint URLs for all tracks
 	for i := range tracks {
-		if tracks[i].CoverImageKey != "" {
-			coverURL, _ := s.minioSvc.GetFileURL("music-files", tracks[i].CoverImageKey)
-			tracks[i].CoverURL = coverURL
-		}
-		if tracks[i].AudioFileKey != "" {
-			audioURL, _ := s.minioSvc.GetFileURL("music-files", tracks[i].AudioFileKey)
-			tracks[i].AudioURL = audioURL
-		}
+		// Cover URL points to track cover endpoint (which gets it from album)
+		tracks[i].CoverURL = fmt.Sprintf("/api/tracks/%s/cover", tracks[i].ID)
+		// Audio URL points to track stream endpoint
+		tracks[i].AudioURL = fmt.Sprintf("/api/tracks/%s/stream", tracks[i].ID)
 	}
 
 	return tracks, nil
@@ -178,7 +171,7 @@ func (s *TrackService) DeleteTrack(ctx context.Context, id string) error {
 	}
 
 	// Delete audio from MinIO
-	if err := s.Minio.DeleteObject(ctx, track.S3AudioKey); err != nil {
+	if err := s.minioSvc.DeleteFile(ctx, "music-files", track.AudioFileKey); err != nil {
 		s.logger.Error("Failed to delete audio from MinIO", "track_id", id, "error", err)
 		// Continue even if MinIO deletion fails
 	}
@@ -363,11 +356,8 @@ func (s *TrackService) GetTrackWithAlbumInfo(ctx context.Context, trackID string
 		return nil, fmt.Errorf("failed to get track: %w", err)
 	}
 
-	// Generate cover URL from cover image key
-	if track.CoverImageKey != "" {
-		coverURL, _ := s.minioSvc.GetFileURL("music-files", track.CoverImageKey)
-		track.CoverURL = coverURL
-	}
+	// Generate BE endpoint URL for cover
+	track.CoverURL = fmt.Sprintf("/api/tracks/%s/cover", track.ID)
 
 	return track, nil
 }
@@ -397,4 +387,24 @@ func (s *TrackService) GetTrackStats(ctx context.Context, trackID string) (*mode
 	}
 
 	return stats, nil
+}
+
+// GetCoverImage returns the cover image object from MinIO for a track
+func (s *TrackService) GetCoverImage(ctx context.Context, coverKey string) (io.ReadCloser, error) {
+	return s.minioSvc.GetObject(ctx, coverKey)
+}
+
+// GetCoverImageInfo returns the cover image info from MinIO for a track  
+func (s *TrackService) GetCoverImageInfo(ctx context.Context, coverKey string) (*minio.ObjectInfo, error) {
+	return s.minioSvc.GetObjectInfo(ctx, coverKey)
+}
+
+// GetAudioFile returns the audio file object from MinIO
+func (s *TrackService) GetAudioFile(ctx context.Context, audioKey string) (io.ReadCloser, error) {
+	return s.minioSvc.GetObject(ctx, audioKey)
+}
+
+// GetAudioFileInfo returns the audio file info from MinIO  
+func (s *TrackService) GetAudioFileInfo(ctx context.Context, audioKey string) (*minio.ObjectInfo, error) {
+	return s.minioSvc.GetObjectInfo(ctx, audioKey)
 }

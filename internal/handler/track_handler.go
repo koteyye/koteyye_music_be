@@ -145,8 +145,8 @@ func (h *TrackHandler) StreamTrack(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get object from MinIO
-	object, err := h.trackService.Minio.GetObject(ctx, track.S3AudioKey)
+	// Get object from MinIO through track service
+	object, err := h.trackService.GetAudioFile(ctx, track.AudioFileKey)
 	if err != nil {
 		h.logger.Error("Failed to get object from MinIO", "track_id", trackID, "error", err)
 		sendErrorResponse(w, http.StatusInternalServerError, "Failed to get audio file")
@@ -155,7 +155,7 @@ func (h *TrackHandler) StreamTrack(w http.ResponseWriter, r *http.Request) {
 	defer object.Close()
 
 	// Get object info for size and modification time
-	info, err := h.trackService.Minio.GetObjectInfo(ctx, track.S3AudioKey)
+	info, err := h.trackService.GetAudioFileInfo(ctx, track.AudioFileKey)
 	if err != nil {
 		h.logger.Error("Failed to get object info", "track_id", trackID, "error", err)
 		sendErrorResponse(w, http.StatusInternalServerError, "Failed to get audio info")
@@ -489,8 +489,8 @@ func (h *TrackHandler) GetTrackCover(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get image from MinIO
-	object, err := h.trackService.Minio.GetObject(ctx, trackResponse.CoverImageKey)
+	// Get image from MinIO through track service
+	object, err := h.trackService.GetCoverImage(ctx, trackResponse.CoverImageKey)
 	if err != nil {
 		h.logger.Error("Failed to get cover from MinIO", "track_id", trackID, "cover_key", trackResponse.CoverImageKey, "error", err)
 		sendErrorResponse(w, http.StatusNotFound, "Cover image not found")
@@ -499,15 +499,22 @@ func (h *TrackHandler) GetTrackCover(w http.ResponseWriter, r *http.Request) {
 	defer object.Close()
 
 	// Get object info for content type
-	info, err := h.trackService.Minio.GetObjectInfo(ctx, trackResponse.CoverImageKey)
+	info, err := h.trackService.GetCoverImageInfo(ctx, trackResponse.CoverImageKey)
 	if err != nil {
 		h.logger.Warn("Failed to get object info", "cover_key", trackResponse.CoverImageKey, "error", err)
 	}
 
 	// Set content type
 	contentType := "image/jpeg" // default
-	if info.ContentType != "" {
+	if info != nil && info.ContentType != "" {
 		contentType = info.ContentType
+	} else {
+		// Try to detect from file extension
+		if strings.HasSuffix(strings.ToLower(trackResponse.CoverImageKey), ".png") {
+			contentType = "image/png"
+		} else if strings.HasSuffix(strings.ToLower(trackResponse.CoverImageKey), ".webp") {
+			contentType = "image/webp"
+		}
 	}
 	w.Header().Set("Content-Type", contentType)
 	w.Header().Set("Cache-Control", "public, max-age=31536000") // Cache for 1 year

@@ -9,7 +9,7 @@ type Track struct {
 	Title           string    `json:"title" example:"Bohemian Rhapsody"`
 	Artist          *string   `json:"artist,omitempty" example:"Queen"` // If NULL, uses album artist
 	DurationSeconds int       `json:"duration_seconds" example:"354"`
-	S3AudioKey      string    `json:"s3_audio_key" example:"albums/550e8400-e29b-41d4-a716-446655440001/550e8400-e29b-41d4-a716-446655440000.mp3"`
+	AudioFileKey    string    `json:"-"` // Internal field for service layer, not exposed to frontend
 	PlaysCount      int       `json:"plays_count" example:"1250"`
 	LikesCount      int       `json:"likes_count" example:"87"`
 	IsLiked         bool      `json:"is_liked,omitempty" example:"true"` // Only in API responses

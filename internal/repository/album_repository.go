@@ -119,7 +119,7 @@ func (r *AlbumRepository) GetAlbumWithTracks(ctx context.Context, albumID string
 	// Get tracks for this album
 	tracksQuery := `
 		SELECT 
-			t.id, t.title, t.duration_seconds, t.plays_count, t.likes_count, t.s3_audio_key,
+			t.id, t.title, t.duration_seconds, t.plays_count, t.likes_count, t.audio_file_key,
 			a.id as album_id, a.title as album_title, a.cover_image_key,
 			COALESCE(t.artist, a.artist) as final_artist,
 			a.release_date, a.genre,

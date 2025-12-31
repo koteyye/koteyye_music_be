@@ -22,7 +22,7 @@ func NewTrackRepository(db *DB) *TrackRepository {
 // CreateTrack creates a new track in the database with album association
 func (r *TrackRepository) CreateTrack(ctx context.Context, track *models.Track) error {
 	query := `
-		INSERT INTO tracks (user_id, album_id, title, artist, duration_seconds, s3_audio_key)
+		INSERT INTO tracks (user_id, album_id, title, artist, duration_seconds, audio_file_key)
 		VALUES ($1, $2, $3, $4, $5, $6)
 		RETURNING id, created_at
 	`
@@ -33,7 +33,7 @@ func (r *TrackRepository) CreateTrack(ctx context.Context, track *models.Track) 
 		track.Title,
 		track.Artist,
 		track.DurationSeconds,
-		track.S3AudioKey,
+		track.AudioFileKey,
 	).Scan(
 		&track.ID,
 		&track.CreatedAt,
@@ -50,7 +50,7 @@ func (r *TrackRepository) CreateTrack(ctx context.Context, track *models.Track) 
 func (r *TrackRepository) GetTrackByID(ctx context.Context, id string) (*models.Track, error) {
 	query := `
 		SELECT t.id, t.user_id, t.album_id, t.title, t.artist, t.duration_seconds, 
-		       t.s3_audio_key, t.plays_count, t.likes_count, t.created_at
+		       t.audio_file_key, t.plays_count, t.likes_count, t.created_at
 		FROM tracks t
 		WHERE t.id = $1
 	`
@@ -63,7 +63,7 @@ func (r *TrackRepository) GetTrackByID(ctx context.Context, id string) (*models.
 		&track.Title,
 		&track.Artist,
 		&track.DurationSeconds,
-		&track.S3AudioKey,
+		&track.AudioFileKey,
 		&track.PlaysCount,
 		&track.LikesCount,
 		&track.CreatedAt,
@@ -88,7 +88,7 @@ func (r *TrackRepository) ListTracksWithAlbumInfo(ctx context.Context, limit, of
 		// For authenticated users, include like status
 		query = `
 			SELECT 
-				t.id, t.title, t.duration_seconds, t.plays_count, t.likes_count, t.s3_audio_key,
+				t.id, t.title, t.duration_seconds, t.plays_count, t.likes_count, t.audio_file_key,
 				a.id as album_id, a.title as album_title, a.cover_image_key,
 				COALESCE(t.artist, a.artist) as final_artist,
 				a.release_date, a.genre,
@@ -105,7 +105,7 @@ func (r *TrackRepository) ListTracksWithAlbumInfo(ctx context.Context, limit, of
 		// For unauthenticated users, no like status
 		query = `
 			SELECT 
-				t.id, t.title, t.duration_seconds, t.plays_count, t.likes_count, t.s3_audio_key,
+				t.id, t.title, t.duration_seconds, t.plays_count, t.likes_count, t.audio_file_key,
 				a.id as album_id, a.title as album_title, a.cover_image_key,
 				COALESCE(t.artist, a.artist) as final_artist,
 				a.release_date, a.genre,
@@ -163,7 +163,7 @@ func (r *TrackRepository) ListTracksWithAlbumInfo(ctx context.Context, limit, of
 func (r *TrackRepository) GetTracksByUserID(ctx context.Context, userID int) ([]models.TrackResponse, error) {
 	query := `
 		SELECT 
-			t.id, t.title, t.duration_seconds, t.plays_count, t.likes_count, t.s3_audio_key,
+			t.id, t.title, t.duration_seconds, t.plays_count, t.likes_count, t.audio_file_key,
 			a.id as album_id, a.title as album_title, a.cover_image_key,
 			COALESCE(t.artist, a.artist) as final_artist,
 			a.release_date, a.genre,
@@ -222,7 +222,7 @@ func (r *TrackRepository) GetTrackWithAlbumInfo(ctx context.Context, trackID str
 	if userID != 0 {
 		query = `
 			SELECT 
-				t.id, t.title, t.duration_seconds, t.plays_count, t.likes_count, t.s3_audio_key,
+				t.id, t.title, t.duration_seconds, t.plays_count, t.likes_count, t.audio_file_key,
 				a.id as album_id, a.title as album_title, a.cover_image_key,
 				COALESCE(t.artist, a.artist) as final_artist,
 				a.release_date, a.genre,
@@ -236,7 +236,7 @@ func (r *TrackRepository) GetTrackWithAlbumInfo(ctx context.Context, trackID str
 	} else {
 		query = `
 			SELECT 
-				t.id, t.title, t.duration_seconds, t.plays_count, t.likes_count, t.s3_audio_key,
+				t.id, t.title, t.duration_seconds, t.plays_count, t.likes_count, t.audio_file_key,
 				a.id as album_id, a.title as album_title, a.cover_image_key,
 				COALESCE(t.artist, a.artist) as final_artist,
 				a.release_date, a.genre,
@@ -531,7 +531,7 @@ func (r *TrackRepository) GetTrackWithLikeStatus(ctx context.Context, trackID st
 // GetTracksWithZeroDuration returns tracks that have duration_seconds = 0
 func (r *TrackRepository) GetTracksWithZeroDuration(ctx context.Context) ([]models.Track, error) {
 	query := `
-		SELECT id, user_id, album_id, title, artist, duration_seconds, s3_audio_key, 
+		SELECT id, user_id, album_id, title, artist, duration_seconds, audio_file_key, 
 			   plays_count, likes_count, created_at
 		FROM tracks 
 		WHERE duration_seconds = 0 OR duration_seconds IS NULL
@@ -554,7 +554,7 @@ func (r *TrackRepository) GetTracksWithZeroDuration(ctx context.Context) ([]mode
 			&track.Title,
 			&track.Artist,
 			&track.DurationSeconds,
-			&track.S3AudioKey,
+			&track.AudioFileKey,
 			&track.PlaysCount,
 			&track.LikesCount,
 			&track.CreatedAt,

@@ -2,90 +2,126 @@ version: '3.8'
 
 services:
   db:
-    image: postgres:16
+    image: postgres:16-alpine
     container_name: koteyye_db
     environment:
-      POSTGRES_DB: koteyye_music
-      POSTGRES_USER: koteyye
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: koteyye_music_db
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
     volumes:
-      - ./pg_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
-    restart: always
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d koteyye_music_db"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
     networks:
       - koteyye_network
 
   minio:
-    image: minio/minio
+    image: minio/minio:latest
     container_name: koteyye_minio
     command: server /data --console-address ":9001"
     environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:-minioadmin}
     volumes:
-      - ./minio_data:/data
+      - minio_data:/data
     ports:
       - "9000:9000"
       - "9001:9001"
-    restart: always
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
     networks:
       - koteyye_network
 
   createbuckets:
-    image: minio/mc
+    image: minio/mc:latest
     container_name: koteyye_createbuckets
     depends_on:
-      - minio
+      minio:
+        condition: service_healthy
     entrypoint: >
       /bin/sh -c "
-      /usr/bin/mc alias set myminio http://minio:9000 ${MINIO_ROOT_USER} ${MINIO_ROOT_PASSWORD};
-      /usr/bin/mc mb myminio/music-files;
-      /usr/bin/mc policy set download myminio/music-files;
+      echo 'Waiting for MinIO to be ready...';
+      sleep 10;
+      /usr/bin/mc alias set myminio http://minio:9000 ${MINIO_ACCESS_KEY:-minioadmin} ${MINIO_SECRET_KEY:-minioadmin};
+      if /usr/bin/mc ls myminio/music-files > /dev/null 2>&1; then
+        echo 'Bucket music-files already exists';
+      else
+        echo 'Creating bucket music-files...';
+        /usr/bin/mc mb myminio/music-files;
+        echo 'Setting bucket policy...';
+        /usr/bin/mc anonymous set download myminio/music-files;
+        echo 'Bucket setup complete';
+      fi;
       exit 0;
       "
     networks:
       - koteyye_network
 
   backend:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: koteyye_backend
-    env_file:
-      - .env
+    environment:
+      # Database configuration
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: user
+      DB_PASSWORD: ${DB_PASSWORD:-password}
+      DB_NAME: koteyye_music_db
+      
+      # MinIO configuration
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-minioadmin}
+      MINIO_USE_SSL: "false"
+      
+      # JWT configuration
+      JWT_SECRET: ${JWT_SECRET}
+      
+      # OAuth configuration (if needed)
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      YANDEX_CLIENT_ID: ${YANDEX_CLIENT_ID:-}
+      YANDEX_CLIENT_SECRET: ${YANDEX_CLIENT_SECRET:-}
+      
+      # Server configuration
+      PORT: 8080
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
     depends_on:
-      - db
-      - minio
+      db:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      createbuckets:
+        condition: service_completed_successfully
     ports:
       - "8080:8080"
-    restart: always
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/api/tracks", "||", "exit", "1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
     networks:
       - koteyye_network
 
-  nginx:
-    image: nginx:alpine
-    container_name: koteyye_nginx
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx/conf.d:/etc/nginx/conf.d
-      - ./certbot/conf:/etc/letsencrypt
-      - ./certbot/www:/var/www/certbot
-      - ../frontend-dist:/usr/share/nginx/html
-    depends_on:
-      - backend
-    restart: always
-    command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
-    networks:
-      - koteyye_network
-
-  certbot:
-    image: certbot/certbot
-    container_name: koteyye_certbot
-    volumes:
-      - ./certbot/conf:/etc/letsencrypt
-      - ./certbot/www:/var/www/certbot
-    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+volumes:
+  postgres_data:
+    driver: local
+  minio_data:
+    driver: local
 
 networks:
   koteyye_network:

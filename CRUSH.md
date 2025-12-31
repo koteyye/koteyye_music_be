@@ -70,6 +70,8 @@
   - All track endpoints now include `album_id` for easy album navigation
   - Enables deep linking from tracks to their parent albums
   - Profile responses include full last track details with JOIN optimization
+- **Album Cover Images**: `/api/albums/{id}/cover` endpoint for serving album cover images
+- **MinIO Integration**: All cover and audio URLs now use BE endpoints instead of direct MinIO URLs for security
 
 ## Known Issues
 - Test files don't exist - create comprehensive test suite
