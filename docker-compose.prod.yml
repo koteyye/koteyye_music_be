@@ -72,6 +72,12 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: koteyye_backend
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.koteyye-backend.rule=Host(\`api.kotey-ye.ru\`)"
+      - "traefik.http.routers.koteyye-backend.entrypoints=websecure"
+      - "traefik.http.routers.koteyye-backend.tls.certresolver=letsencrypt"
+      - "traefik.http.services.koteyye-backend.loadbalancer.server.port=8080"
     environment:
       # Database configuration
       DB_HOST: db
@@ -112,8 +118,8 @@ services:
         condition: service_healthy
       createbuckets:
         condition: service_completed_successfully
-    ports:
-      - "8080:8080"
+    # ports:
+    #   - "8080:8080"  # Not needed with Traefik
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health", "||", "exit", "1"]
@@ -123,6 +129,7 @@ services:
       start_period: 30s
     networks:
       - koteyye_network
+      - dokploy-network
 
 volumes:
   postgres_data:
@@ -133,3 +140,5 @@ volumes:
 networks:
   koteyye_network:
     driver: bridge
+  dokploy-network:
+    external: true
