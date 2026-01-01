@@ -239,7 +239,7 @@ func (s *AuthService) PromoteGuestToUser(ctx context.Context, guestID int, userI
 		ID:         user.ID,
 		Email:      &userInfo.Email,
 		Name:       name,
-		AvatarURL:  avatarURL,
+		AvatarKey:  avatarURL,
 		Provider:   &userInfo.Provider,
 		ExternalID: &userInfo.ExternalID,
 		Role:       "user", // Promote from guest to user

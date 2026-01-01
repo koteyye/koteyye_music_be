@@ -120,6 +120,10 @@ func (s *TrackService) ListTracksWithOptionalUser(ctx context.Context, page, lim
 		tracks[i].CoverURL = fmt.Sprintf("/api/tracks/%s/cover", tracks[i].ID)
 		// Audio URL points to track stream endpoint
 		tracks[i].AudioURL = fmt.Sprintf("/api/tracks/%s/stream", tracks[i].ID)
+		// Add image key for frontend
+		if tracks[i].CoverImageKey != "" {
+			tracks[i].ImageKey = &tracks[i].CoverImageKey
+		}
 	}
 
 	// Get total count of tracks
@@ -151,6 +155,10 @@ func (s *TrackService) GetUserTracksWithAlbumInfo(ctx context.Context, userID in
 		tracks[i].CoverURL = fmt.Sprintf("/api/tracks/%s/cover", tracks[i].ID)
 		// Audio URL points to track stream endpoint
 		tracks[i].AudioURL = fmt.Sprintf("/api/tracks/%s/stream", tracks[i].ID)
+		// Add image key for frontend
+		if tracks[i].CoverImageKey != "" {
+			tracks[i].ImageKey = &tracks[i].CoverImageKey
+		}
 	}
 
 	return tracks, nil

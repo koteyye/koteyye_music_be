@@ -474,6 +474,8 @@ func (h *TrackHandler) GetTrackCover(w http.ResponseWriter, r *http.Request) {
 		sendErrorResponse(w, http.StatusBadRequest, "Track ID is required")
 		return
 	}
+	
+	h.logger.Info("GetTrackCover called", "track_id", trackID, "path", r.URL.Path)
 
 	// Get track with album info
 	trackResponse, err := h.trackService.GetTrackWithAlbumInfo(ctx, trackID, 0) // No user ID needed for cover
@@ -485,6 +487,7 @@ func (h *TrackHandler) GetTrackCover(w http.ResponseWriter, r *http.Request) {
 
 	// Check if track has cover (from album)
 	if trackResponse.CoverImageKey == "" {
+		h.logger.Warn("Track has no cover image", "track_id", trackID, "cover_key", trackResponse.CoverImageKey)
 		sendErrorResponse(w, http.StatusNotFound, "Track has no cover image")
 		return
 	}

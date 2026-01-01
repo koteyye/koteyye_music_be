@@ -153,9 +153,9 @@ func (s *UserService) RemoveAvatar(ctx context.Context, userID int) (*models.Use
 	}
 
 	// Remove avatar from MinIO if exists and it's stored in our MinIO
-	if user.AvatarURL != nil && *user.AvatarURL != "" {
-		if strings.Contains(*user.AvatarURL, "avatars/") {
-			avatarKey := extractMinIOKeyFromURL(*user.AvatarURL)
+	if user.AvatarKey != nil && *user.AvatarKey != "" {
+		if strings.Contains(*user.AvatarKey, "avatars/") {
+			avatarKey := extractMinIOKeyFromURL(*user.AvatarKey)
 			if avatarKey != "" {
 				if err := s.minioClient.DeleteObject(ctx, avatarKey); err != nil {
 					s.logger.Warn("Failed to remove avatar from MinIO", "user_id", userID, "avatar_key", avatarKey, "error", err)

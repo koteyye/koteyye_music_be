@@ -24,6 +24,7 @@ type TrackResponse struct {
 	AlbumID         string    `json:"album_id" example:"550e8400-e29b-41d4-a716-446655440001"`
 	AlbumTitle      string    `json:"album_title" example:"A Night at the Opera"`
 	CoverURL        string    `json:"cover_url" example:"https://s3.amazonaws.com/bucket/albums/550e8400-e29b-41d4-a716-446655440001/cover.jpg"`
+	ImageKey        *string   `json:"image_key,omitempty" example:"albums/550e8400-e29b-41d4-a716-446655440001/cover.jpg"` // Cover image key for frontend
 	CoverImageKey   string    `json:"-"` // Internal field for service layer, not exposed to frontend
 	AudioURL        string    `json:"audio_url" example:"https://s3.amazonaws.com/bucket/albums/550e8400-e29b-41d4-a716-446655440001/550e8400-e29b-41d4-a716-446655440000.mp3"`
 	AudioFileKey    string    `json:"-"` // Internal field for service layer, not exposed to frontend
