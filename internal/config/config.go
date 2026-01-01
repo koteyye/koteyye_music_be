@@ -32,19 +32,8 @@ func Load() (*Config, error) {
 	// Загружаем .env файл, если он существует
 	_ = godotenv.Load()
 
-	// Собираем DSN из отдельных переменных или используем готовую
-	dbDSN := getEnv("DB_DSN", "")
-	if dbDSN == "" {
-		dbHost := getEnv("DB_HOST", "localhost")
-		dbPort := getEnv("DB_PORT", "5432")
-		dbUser := getEnv("DB_USER", "postgres_user")
-		dbPassword := getEnv("DB_PASSWORD", "postgres_pass")
-		dbName := getEnv("DB_NAME", "music_service")
-		dbDSN = fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", dbUser, dbPassword, dbHost, dbPort, dbName)
-	}
-
 	cfg := &Config{
-		DBDSN:          dbDSN,
+		DBDSN:          getEnv("DB_DSN", "postgres://postgres_user:postgres_pass@localhost:5432/music_service?sslmode=disable"),
 		MinIOEndpoint:  getEnv("MINIO_ENDPOINT", "localhost:9000"),
 		MinIOAccessKey: getEnv("MINIO_ACCESS_KEY", "minioadmin"),
 		MinIOSecretKey: getEnv("MINIO_SECRET_KEY", "minioadmin"),

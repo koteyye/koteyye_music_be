@@ -71,11 +71,7 @@ services:
       dockerfile: Dockerfile
     environment:
       # Database configuration
-      DB_HOST: db
-      DB_PORT: 5432
-      DB_USER: user
-      DB_PASSWORD: ${DB_PASSWORD:-password}
-      DB_NAME: koteyye_music_db
+      DB_DSN: "postgres://user:${DB_PASSWORD:-password}@db:5432/koteyye_music_db?sslmode=disable"
       
       # MinIO configuration
       MINIO_ENDPOINT: minio:9000
