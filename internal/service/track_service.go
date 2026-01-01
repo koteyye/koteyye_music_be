@@ -117,9 +117,9 @@ func (s *TrackService) ListTracksWithOptionalUser(ctx context.Context, page, lim
 	// Generate BE endpoint URLs for all tracks
 	for i := range tracks {
 		// Cover URL points to track cover endpoint (which gets it from album)
-		tracks[i].CoverURL = fmt.Sprintf("/api/tracks/%s/cover", tracks[i].ID)
+		tracks[i].CoverURL = fmt.Sprintf("/tracks/%s/cover", tracks[i].ID)
 		// Audio URL points to track stream endpoint
-		tracks[i].AudioURL = fmt.Sprintf("/api/tracks/%s/stream", tracks[i].ID)
+		tracks[i].AudioURL = fmt.Sprintf("/tracks/%s/stream", tracks[i].ID)
 		// Add image key for frontend
 		if tracks[i].CoverImageKey != "" {
 			tracks[i].ImageKey = &tracks[i].CoverImageKey
@@ -152,9 +152,9 @@ func (s *TrackService) GetUserTracksWithAlbumInfo(ctx context.Context, userID in
 	// Generate BE endpoint URLs for all tracks
 	for i := range tracks {
 		// Cover URL points to track cover endpoint (which gets it from album)
-		tracks[i].CoverURL = fmt.Sprintf("/api/tracks/%s/cover", tracks[i].ID)
+		tracks[i].CoverURL = fmt.Sprintf("/tracks/%s/cover", tracks[i].ID)
 		// Audio URL points to track stream endpoint
-		tracks[i].AudioURL = fmt.Sprintf("/api/tracks/%s/stream", tracks[i].ID)
+		tracks[i].AudioURL = fmt.Sprintf("/tracks/%s/stream", tracks[i].ID)
 		// Add image key for frontend
 		if tracks[i].CoverImageKey != "" {
 			tracks[i].ImageKey = &tracks[i].CoverImageKey
@@ -365,7 +365,7 @@ func (s *TrackService) GetTrackWithAlbumInfo(ctx context.Context, trackID string
 	}
 
 	// Generate BE endpoint URL for cover
-	track.CoverURL = fmt.Sprintf("/api/tracks/%s/cover", track.ID)
+	track.CoverURL = fmt.Sprintf("/tracks/%s/cover", track.ID)
 
 	return track, nil
 }

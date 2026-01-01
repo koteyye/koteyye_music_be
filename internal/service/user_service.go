@@ -41,8 +41,19 @@ func (s *UserService) GetUserProfile(ctx context.Context, userID int) (*models.U
 	// Convert avatar key to URL
 	var avatarURL *string
 	if user.AvatarKey != nil && *user.AvatarKey != "" {
-		url := fmt.Sprintf("/api/avatars/%s", *user.AvatarKey)
-		avatarURL = &url
+		key := *user.AvatarKey
+		if strings.HasPrefix(key, "avatars/") {
+			// Our MinIO file - create API endpoint URL
+			url := fmt.Sprintf("/avatars/%s", key)
+			avatarURL = &url
+		} else if strings.HasPrefix(key, "data:image") || strings.HasPrefix(key, "http") {
+			// Base64 data or external URL - return as is
+			avatarURL = &key
+		} else {
+			// Unknown format - try as MinIO key anyway
+			url := fmt.Sprintf("/avatars/%s", key)
+			avatarURL = &url
+		}
 	}
 
 	profile := &models.UserProfileResponse{
@@ -254,9 +265,9 @@ func (s *UserService) GetUserWithLastTrack(ctx context.Context, userID int) (*mo
 
 // extractMinIOKeyFromURL extracts MinIO object key from avatar URL
 func extractMinIOKeyFromURL(url string) string {
-	// Extract key from URL like "/api/avatars/avatars/123/uuid.jpg"
-	if strings.HasPrefix(url, "/api/avatars/") {
-		return url[len("/api/avatars/"):]
+	// Extract key from URL like "/avatars/avatars/123/uuid.jpg"
+	if strings.HasPrefix(url, "/avatars/") {
+		return url[len("/avatars/"):]
 	}
 	return ""
 }

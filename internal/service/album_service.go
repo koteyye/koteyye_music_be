@@ -85,7 +85,7 @@ func (s *AlbumService) CreateAlbum(ctx context.Context, req *models.AlbumCreate,
 	}
 
 	// Generate BE endpoint URL for cover
-	coverURL := fmt.Sprintf("/api/albums/%s/cover", albumID)
+	coverURL := fmt.Sprintf("/albums/%s/cover", albumID)
 	year := releaseDate.Year()
 
 	return &models.AlbumResponse{
@@ -107,7 +107,7 @@ func (s *AlbumService) GetAlbumByID(ctx context.Context, id string) (*models.Alb
 	}
 
 	// Generate BE endpoint URL for cover
-	coverURL := fmt.Sprintf("/api/albums/%s/cover", album.ID)
+	coverURL := fmt.Sprintf("/albums/%s/cover", album.ID)
 
 	// Format release date and extract year
 	releaseDateStr := album.ReleaseDate.Format("2006-01-02")
@@ -164,14 +164,14 @@ func (s *AlbumService) GetAlbumWithTracks(ctx context.Context, albumID string) (
 	}
 
 	// Generate BE endpoint URL for album cover
-	albumDetail.Album.CoverURL = fmt.Sprintf("/api/albums/%s/cover", albumID)
+	albumDetail.Album.CoverURL = fmt.Sprintf("/albums/%s/cover", albumID)
 
 	// Generate BE endpoint URLs for tracks
 	for i := range albumDetail.Tracks {
 		// Cover URL points to track cover endpoint (which gets it from album)
-		albumDetail.Tracks[i].CoverURL = fmt.Sprintf("/api/tracks/%s/cover", albumDetail.Tracks[i].ID)
+		albumDetail.Tracks[i].CoverURL = fmt.Sprintf("/tracks/%s/cover", albumDetail.Tracks[i].ID)
 		// Audio URL points to track stream endpoint
-		albumDetail.Tracks[i].AudioURL = fmt.Sprintf("/api/tracks/%s/stream", albumDetail.Tracks[i].ID)
+		albumDetail.Tracks[i].AudioURL = fmt.Sprintf("/tracks/%s/stream", albumDetail.Tracks[i].ID)
 	}
 
 	return albumDetail, nil
