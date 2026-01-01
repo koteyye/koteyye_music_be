@@ -21,20 +21,20 @@ func NewUserRepository(db *DB) *UserRepository {
 // CreateUser creates a new user in the database
 func (r *UserRepository) CreateUser(ctx context.Context, user *models.User) error {
 	query := `
-		INSERT INTO users (email, name, avatar_url, password_hash, provider, external_id, role)
+		INSERT INTO users (email, name, avatar_key, password_hash, provider, external_id, role)
 		VALUES ($1, $2, $3, $4, $5, $6, $7)
-		RETURNING id, email, name, avatar_url, password_hash, provider, external_id, role, 
+		RETURNING id, email, name, avatar_key, password_hash, provider, external_id, role, 
 		          last_track_id, last_position, volume_preference, created_at, last_login_at
 	`
 
 	// Use NULL for nil pointers (guest users)
-	var email, name, avatarURL, passwordHash, provider, externalID interface{} = user.Email, user.Name, user.AvatarURL, user.PasswordHash, user.Provider, user.ExternalID
+	var email, name, avatarKey, passwordHash, provider, externalID interface{} = user.Email, user.Name, user.AvatarKey, user.PasswordHash, user.Provider, user.ExternalID
 
-	err := r.db.Pool.QueryRow(ctx, query, email, name, avatarURL, passwordHash, provider, externalID, user.Role).Scan(
+	err := r.db.Pool.QueryRow(ctx, query, email, name, avatarKey, passwordHash, provider, externalID, user.Role).Scan(
 		&user.ID,
 		&user.Email,
 		&user.Name,
-		&user.AvatarURL,
+		&user.AvatarKey,
 		&user.PasswordHash,
 		&user.Provider,
 		&user.ExternalID,
@@ -56,7 +56,7 @@ func (r *UserRepository) CreateUser(ctx context.Context, user *models.User) erro
 // GetUserByEmail retrieves a user by email
 func (r *UserRepository) GetUserByEmail(ctx context.Context, email string) (*models.User, error) {
 	query := `
-		SELECT id, email, name, avatar_url, password_hash, provider, external_id, role, created_at, last_login_at
+		SELECT id, email, name, avatar_key, password_hash, provider, external_id, role, created_at, last_login_at
 		FROM users
 		WHERE email = $1
 	`
@@ -66,7 +66,7 @@ func (r *UserRepository) GetUserByEmail(ctx context.Context, email string) (*mod
 		&user.ID,
 		&user.Email,
 		&user.Name,
-		&user.AvatarURL,
+		&user.AvatarKey,
 		&user.PasswordHash,
 		&user.Provider,
 		&user.ExternalID,
@@ -88,7 +88,7 @@ func (r *UserRepository) GetUserByEmail(ctx context.Context, email string) (*mod
 // GetUserByID retrieves a user by ID
 func (r *UserRepository) GetUserByID(ctx context.Context, id int) (*models.User, error) {
 	query := `
-		SELECT id, email, name, avatar_url, password_hash, provider, external_id, role, 
+		SELECT id, email, name, avatar_key, password_hash, provider, external_id, role, 
 		       last_track_id, last_position, volume_preference, created_at, last_login_at
 		FROM users
 		WHERE id = $1
@@ -99,7 +99,7 @@ func (r *UserRepository) GetUserByID(ctx context.Context, id int) (*models.User,
 		&user.ID,
 		&user.Email,
 		&user.Name,
-		&user.AvatarURL,
+		&user.AvatarKey,
 		&user.PasswordHash,
 		&user.Provider,
 		&user.ExternalID,
@@ -176,17 +176,17 @@ func (r *UserRepository) GetUserByProviderAndExternalID(ctx context.Context, pro
 func (r *UserRepository) UpdateUser(ctx context.Context, user *models.User) error {
 	query := `
 		UPDATE users
-		SET email = $1, name = $2, avatar_url = $3, provider = $4, external_id = $5, role = $6
+		SET email = $1, name = $2, avatar_key = $3, provider = $4, external_id = $5, role = $6
 		WHERE id = $7
-		RETURNING id, email, name, avatar_url, password_hash, provider, external_id, role, created_at, last_login_at
+		RETURNING id, email, name, avatar_key, password_hash, provider, external_id, role, created_at, last_login_at
 	`
 
 	var updatedUser models.User
-	err := r.db.Pool.QueryRow(ctx, query, user.Email, user.Name, user.AvatarURL, user.Provider, user.ExternalID, user.Role, user.ID).Scan(
+	err := r.db.Pool.QueryRow(ctx, query, user.Email, user.Name, user.AvatarKey, user.Provider, user.ExternalID, user.Role, user.ID).Scan(
 		&updatedUser.ID,
 		&updatedUser.Email,
 		&updatedUser.Name,
-		&updatedUser.AvatarURL,
+		&updatedUser.AvatarKey,
 		&updatedUser.PasswordHash,
 		&updatedUser.Provider,
 		&updatedUser.ExternalID,
@@ -245,11 +245,11 @@ func (r *UserRepository) LinkOAuthAccount(ctx context.Context, userID int, provi
 	return nil
 }
 
-// UpdateUserProfile updates user's name and avatar_url
+// UpdateUserProfile updates user's name and avatar_key
 func (r *UserRepository) UpdateUserProfile(ctx context.Context, userID int, name, avatarURL *string) error {
 	query := `
 		UPDATE users 
-		SET name = $2, avatar_url = $3
+		SET name = $2, avatar_key = $3
 		WHERE id = $1
 	`
 
@@ -289,7 +289,7 @@ func (r *UserRepository) UpdatePlayerState(ctx context.Context, userID int, trac
 func (r *UserRepository) GetUserWithLastTrack(ctx context.Context, id int) (*models.User, error) {
 	query := `
 		SELECT 
-			u.id, u.email, u.name, u.avatar_url, u.password_hash, u.provider, u.external_id, u.role,
+			u.id, u.email, u.name, u.avatar_key, u.password_hash, u.provider, u.external_id, u.role,
 			u.last_track_id, u.last_position, u.volume_preference, u.created_at, u.last_login_at,
 			t.id as track_id, t.title, t.artist, t.album_id, t.duration_seconds, t.audio_file_key,
 			t.plays_count, t.likes_count, t.created_at as track_created_at
@@ -308,7 +308,7 @@ func (r *UserRepository) GetUserWithLastTrack(ctx context.Context, id int) (*mod
 		&user.ID,
 		&user.Email,
 		&user.Name,
-		&user.AvatarURL,
+		&user.AvatarKey,
 		&user.PasswordHash,
 		&user.Provider,
 		&user.ExternalID,

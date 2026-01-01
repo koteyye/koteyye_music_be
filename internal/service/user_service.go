@@ -38,11 +38,18 @@ func (s *UserService) GetUserProfile(ctx context.Context, userID int) (*models.U
 		return nil, fmt.Errorf("failed to get user profile: %w", err)
 	}
 
+	// Convert avatar key to URL
+	var avatarURL *string
+	if user.AvatarKey != nil && *user.AvatarKey != "" {
+		url := fmt.Sprintf("/api/avatars/%s", *user.AvatarKey)
+		avatarURL = &url
+	}
+
 	profile := &models.UserProfileResponse{
 		ID:               user.ID,
 		Email:            user.Email,
 		Name:             user.Name,
-		AvatarURL:        user.AvatarURL,
+		AvatarURL:        avatarURL,
 		Provider:         user.Provider,
 		Role:             user.Role,
 		LastTrackID:      user.LastTrackID,
@@ -59,7 +66,7 @@ func (s *UserService) GetUserProfile(ctx context.Context, userID int) (*models.U
 // UpdateUserProfile updates user profile information
 func (s *UserService) UpdateUserProfile(ctx context.Context, userID int, req *models.UpdateProfileRequest) (*models.UserProfileResponse, error) {
 	// Update profile in database
-	if err := s.userRepo.UpdateUserProfile(ctx, userID, req.Name, req.AvatarURL); err != nil {
+	if err := s.userRepo.UpdateUserProfile(ctx, userID, req.Name, req.AvatarKey); err != nil {
 		s.logger.Error("Failed to update user profile", "user_id", userID, "error", err)
 		return nil, fmt.Errorf("failed to update profile: %w", err)
 	}
@@ -112,27 +119,21 @@ func (s *UserService) UploadAvatar(ctx context.Context, userID int, file multipa
 	if err != nil {
 		s.logger.Warn("Failed to get user for old avatar cleanup", "user_id", userID, "error", err)
 		// Continue anyway, don't fail the operation
-	} else if user.AvatarURL != nil && *user.AvatarURL != "" {
+	} else if user.AvatarKey != nil && *user.AvatarKey != "" {
 		// Delete old avatar if exists
-		if strings.Contains(*user.AvatarURL, "avatars/") {
-			oldKey := extractMinIOKeyFromURL(*user.AvatarURL)
-			if oldKey != "" {
-				if err := s.minioClient.DeleteObject(ctx, oldKey); err != nil {
-					s.logger.Warn("Failed to remove old avatar", "user_id", userID, "old_key", oldKey, "error", err)
-					// Continue anyway
-				}
+		if strings.HasPrefix(*user.AvatarKey, "avatars/") {
+			if err := s.minioClient.DeleteObject(ctx, *user.AvatarKey); err != nil {
+				s.logger.Warn("Failed to remove old avatar", "user_id", userID, "old_key", *user.AvatarKey, "error", err)
+				// Continue anyway
 			}
 		}
 	}
 
-	// Generate public URL for the avatar
-	avatarURL := fmt.Sprintf("/api/avatars/%s", avatarKey)
-
-	// Update user profile with new avatar URL
-	if err := s.userRepo.UpdateUserProfile(ctx, userID, nil, &avatarURL); err != nil {
+	// Update user profile with new avatar key
+	if err := s.userRepo.UpdateUserProfile(ctx, userID, nil, &avatarKey); err != nil {
 		// Try to cleanup uploaded file
 		s.minioClient.DeleteObject(ctx, avatarKey)
-		s.logger.Error("Failed to update user avatar URL", "user_id", userID, "error", err)
+		s.logger.Error("Failed to update user avatar key", "user_id", userID, "error", err)
 		return nil, fmt.Errorf("failed to update profile with new avatar: %w", err)
 	}
 

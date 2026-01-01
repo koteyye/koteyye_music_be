@@ -6,7 +6,7 @@ type User struct {
 	ID               int        `json:"id" example:"1"`
 	Email            *string    `json:"email,omitempty" example:"user@example.com"`                             // NULL для гостей
 	Name             *string    `json:"name,omitempty" example:"John Doe"`                                      // NULL если не указано
-	AvatarURL        *string    `json:"avatar_url,omitempty" example:"https://example.com/avatar.jpg"`          // NULL если нет аватара
+	AvatarKey        *string    `json:"avatar_key,omitempty" example:"avatars/1/abc123.jpg"`                    // NULL если нет аватара
 	PasswordHash     *string    `json:"-" example:""`                                                           // NULL для гостей и OAuth пользователей
 	Provider         *string    `json:"provider,omitempty" example:"local"`                                     // NULL для гостей, 'local', 'google', 'yandex'
 	ExternalID       *string    `json:"external_id,omitempty" example:""`                                       // NULL для локальных пользователей
@@ -57,7 +57,7 @@ type UserProfileResponse struct {
 	ID               int        `json:"id" example:"1"`
 	Email            *string    `json:"email,omitempty" example:"user@example.com"`
 	Name             *string    `json:"name,omitempty" example:"John Doe"`
-	AvatarURL        *string    `json:"avatar_url,omitempty" example:"https://example.com/avatar.jpg"`
+	AvatarURL        *string    `json:"avatar_url,omitempty" example:"/api/avatars/avatars/1/abc123.jpg"` // Computed from avatar_key
 	Provider         *string    `json:"provider,omitempty" example:"local"`
 	Role             string     `json:"role" example:"user"`
 	LastTrackID      *string    `json:"last_track_id,omitempty" example:"550e8400-e29b-41d4-a716-446655440000"`
@@ -71,7 +71,7 @@ type UserProfileResponse struct {
 // UpdateProfileRequest represents profile update data
 type UpdateProfileRequest struct {
 	Name      *string `json:"name,omitempty" example:"John Doe"`
-	AvatarURL *string `json:"avatar_url,omitempty" example:"https://example.com/avatar.jpg"`
+	AvatarKey *string `json:"avatar_key,omitempty" example:"avatars/1/abc123.jpg"`
 }
 
 // PlayerStateRequest represents player state update data

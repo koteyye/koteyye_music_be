@@ -412,18 +412,17 @@ func (s *OAuthService) findOrCreateUser(ctx context.Context, userInfo *models.OA
 // createOAuthUser creates a new user from OAuth info
 func (s *OAuthService) createOAuthUser(ctx context.Context, userInfo *models.OAuthUserInfo) (*models.User, error) {
 	// Prepare optional fields
-	var name, avatarURL *string
+	var name *string
 	if userInfo.Name != "" {
 		name = &userInfo.Name
 	}
-	if userInfo.AvatarURL != "" {
-		avatarURL = &userInfo.AvatarURL
-	}
+	// TODO: Download avatarURL and convert to key
+	_ = userInfo.AvatarURL
 
 	user := &models.User{
 		Email:      &userInfo.Email,
 		Name:       name,
-		AvatarURL:  avatarURL,
+		AvatarKey:  nil, // TODO: Download and store OAuth avatars to MinIO
 		Provider:   &userInfo.Provider,
 		ExternalID: &userInfo.ExternalID,
 		Role:       "user",
